@@ -1,0 +1,125 @@
+package main
+
+import (
+	"fmt"
+	"strconv"
+	"github.com/harry1453/go-common-file-dialog/cfd"
+	"github.com/harry1453/go-common-file-dialog/cfdutil"
+	"github.com/xuri/excelize/v2"
+)
+
+func openFile(workbookType string) string {
+	result, err := cfdutil.ShowOpenFileDialog(cfd.DialogConfig{
+		Title: "Select the" + workbookType + "workbook.",
+		Role:  "OpenFileExample",
+		FileFilters: []cfd.FileFilter{
+			{
+				DisplayName: "Excel Files (*.xlsx, *.csv)",
+				Pattern:     "*.xlsx;*.csv",
+			},
+		},
+		SelectedFileFilterIndex: 2,
+		FileName:                "file.csv",
+		DefaultExtension:        "csv",
+	})
+
+	if err == cfd.ErrorCancelled {
+		fmt.Println("Dialog was cancelled by the user.")
+	} else if err != nil {
+		fmt.Println(err)
+	}
+	return result
+}
+
+func getHeadings(workbookPath string) []string {
+	// Excelize read file
+	result, err := excelize.OpenFile(workbookPath)
+	if err != nil {
+		fmt.Println(err)
+	}
+	
+	// Grabs all the columns from Sheet 1
+	// ---TO DO--- get the actual first sheet whatever it's named
+	
+	// Longform variable declarations 4ever!
+	var headings []string 
+	
+	cols, err := result.Cols("Sheet1")
+	if err != nil {
+		fmt.Println(err)
+	}
+	
+	// For each column, output the value in the first row
+	var i int = 1
+	for cols.Next() {
+		colCell,err := cols.Rows()
+		if err != nil {
+			fmt.Println(err)
+		}
+		
+		var j string = strconv.Itoa(i) + ": " + colCell[0] + "\n"
+		headings = append(headings, j)
+		i++
+	}
+	
+	return headings
+}
+
+func updateList(workbookPath string, priceColumn int) map[string]string {
+	// Excel is not zero-based, but Excelize is so we need to convert our variable
+	priceColumn -= 1
+	
+	// Excelize read file
+	result, err := excelize.OpenFile(workbookPath)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	rows, err := result.Rows("Sheet1")
+	if err != nil {
+		fmt.Println(err)
+	}
+	
+	// Create a map of skus and new prices
+	var prices = make(map[string]string)
+	
+	for rows.Next() {
+		row, err := rows.Columns()
+		if err != nil {
+			fmt.Println(err)
+		}
+		prices[row[0]] = row[2]
+	}
+	
+	return prices
+}
+
+func main() {
+	// Get the update sheet and read the column headings
+	var uWBPath string = openFile("Update")	
+	var headings = getHeadings(uWBPath)
+	
+	// Ask user to choose the correct column heading
+	fmt.Println("Select the column with updated prices")
+	for _, val := range headings {
+		fmt.Printf(val)
+	}
+	
+	var priceColumn int
+	fmt.Scanln(&priceColumn)
+			
+	// Create a key=>value list (map) of part number and price from the update sheet
+	var prices = updateList(uWBPath, priceColumn)
+	
+	fmt.Println(prices)
+	// Get the import sheet and clean part numbers
+
+	// Match the cleaned part numbers with the key=>value pair list and see if there's an updated price
+
+	// If updated price, insert that into column Q.
+
+	// If no updated price, copy value from column G.
+
+	// If updated price, but price is a string, copy value from column G and insert price into column R
+
+}
