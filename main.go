@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unicode"
 	"github.com/harry1453/go-common-file-dialog/cfd"
 	"github.com/harry1453/go-common-file-dialog/cfdutil"
 	"github.com/xuri/excelize/v2"
@@ -127,6 +128,17 @@ func importSheet(workbookPath string, prices map[string]string) {
 		if strings.HasPrefix(partNumber, "GRID_") {
 			partNumber = strings.TrimPrefix(partNumber, "GRID_")
 		}
+		// Remove any lowercase suffix
+		// Temporarily wrapping this in a check for value since I'm not yet handling blanks
+		if partNumber != "" {
+			var lastChar string = partNumber[len(partNumber)-1:]
+			for _, r := range lastChar {
+				if unicode.IsLower(r){
+					partNumber = strings.TrimSuffix(partNumber, lastChar)
+				}
+			}
+		}
+		
 		
 		fmt.Println(partNumber)
 	}
