@@ -8,9 +8,9 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func openFile(workbookType string) string {
+func openFileDialog(workbookType string) string {
 	result, err := cfdutil.ShowOpenFileDialog(cfd.DialogConfig{
-		Title: "Select the" + workbookType + "workbook.",
+		Title: "Select the " + workbookType + " workbook.",
 		Role:  "OpenFileExample",
 		FileFilters: []cfd.FileFilter{
 			{
@@ -28,6 +28,16 @@ func openFile(workbookType string) string {
 	} else if err != nil {
 		fmt.Println(err)
 	}
+	return result
+}
+
+func openFile(workbookPath string) *excelize.File {
+	// Excelize read file
+	result, err := excelize.OpenFile(workbookPath)
+	if err != nil {
+		fmt.Println(err)
+	}
+	
 	return result
 }
 
@@ -69,11 +79,7 @@ func updateList(workbookPath string, priceColumn int) map[string]string {
 	// Excel is not zero-based, but Excelize is so we need to convert our variable
 	priceColumn -= 1
 	
-	// Excelize read file
-	result, err := excelize.OpenFile(workbookPath)
-	if err != nil {
-		fmt.Println(err)
-	}
+	var result = openFile(workbookPath)
 
 	rows, err := result.Rows("Sheet1")
 	if err != nil {
@@ -94,9 +100,18 @@ func updateList(workbookPath string, priceColumn int) map[string]string {
 	return prices
 }
 
+func importSheet(workbookPath string, prices map[string]string) {
+	var result = openFile(workbookPath)
+	
+	rows, err := result.Rows("Sheet1")
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
 func main() {
 	// Get the update sheet and read the column headings
-	var uWBPath string = openFile("Update")	
+	var uWBPath string = openFileDialog("Update")	
 	var headings = getHeadings(uWBPath)
 	
 	// Ask user to choose the correct column heading
@@ -113,7 +128,12 @@ func main() {
 	
 	fmt.Println(prices)
 	// Get the import sheet and clean part numbers
-
+	var iWBPath string = openFileDialog("Import")
+	
+	fmt.Println(iWBPath)
+	
+	importSheet(iWBPath, prices)	
+	
 	// Match the cleaned part numbers with the key=>value pair list and see if there's an updated price
 
 	// If updated price, insert that into column Q.
