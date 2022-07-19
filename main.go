@@ -107,6 +107,18 @@ func importSheet(workbookPath string, prices map[string]string) {
 	if err != nil {
 		fmt.Println(err)
 	}
+	
+	for rows.Next() {
+		row, err := rows.Columns()
+		
+		if err != nil {
+			fmt.Println(err)
+		}
+		
+		var partNumber string = row[3]
+		
+		fmt.Println(partNumber)
+	}
 }
 
 func main() {
