@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"github.com/harry1453/go-common-file-dialog/cfd"
 	"github.com/harry1453/go-common-file-dialog/cfdutil"
 	"github.com/xuri/excelize/v2"
@@ -115,7 +116,17 @@ func importSheet(workbookPath string, prices map[string]string) {
 			fmt.Println(err)
 		}
 		
+		// Grab the part number from column D
 		var partNumber string = row[3]
+		
+		// Clean part number
+		if partNumber == "" {
+			// ---TO DO--- DO SOMETHING
+		}
+		// Remove the GRID_ label from part numbers
+		if strings.HasPrefix(partNumber, "GRID_") {
+			partNumber = strings.TrimPrefix(partNumber, "GRID_")
+		}
 		
 		fmt.Println(partNumber)
 	}
